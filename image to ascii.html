@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Image to ASCII Art Converter</title>
+    <style>
+      pre {
+        font-family: monospace;
+   	line-height: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image to ASCII Art Converter</h1>
+    <form>
+      <label for="image">Upload an image:</label>
+      <input type="file" id="image" name="image" accept="image/*">
+      <br><br>
+      <button type="submit">Convert to ASCII Art</button>
+    </form>
+    <pre id="ascii-art"></pre>
+    <script>
+      // Get the file input element
+      var inputElement = document.getElementById("image");
+
+      // Add an event listener to the file input element
+      inputElement.addEventListener("change", handleFiles, false);
+
+      // Function to handle the uploaded image
+      function handleFiles() {
+        var fileList = this.files;
+        var img = document.createElement("img");
+        img.src = URL.createObjectURL(fileList[0]);
+        img.onload = function() {
+          // Create a canvas element
+          var canvas = document.createElement("canvas");
+
+          // Calculate the new height based on the aspect ratio
+          var ratio = img.width / img.height;
+          var newHeight = Math.round(300 / ratio);
+
+          // Set the canvas dimensions
+          canvas.width = 500;
+          canvas.height = newHeight;
+
+          // Draw the image onto the canvas
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          // Get the image data from the canvas
+          var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+          // Convert the image data to ASCII art
+          var asciiArt = convertToAscii(imageData);
+
+          // Display the ASCII art output
+          displayAsciiArt(asciiArt);
+        };
+      }
+
+      // Function to convert the image data to ASCII art
+      function convertToAscii(imageData) {
+        var asciiChars = ['@', '%', '#', '*', '+', '=', '-', ':', '.'," "];
+        var asciiArt = "";
+        for (var i = 0; i < imageData.data.length; i += 4) {
+          var r = imageData.data[i];
+          var g = imageData.data[i + 1];
+          var b = imageData.data[i + 2];
+          var brightness = (r + g + b) / 3;
+          var index = Math.floor(brightness / 25 );
+          var asciiChar = asciiChars[index];
+          asciiArt += asciiChar;
+          if ((i / 4 + 1) % imageData.width == 0) {
+            asciiArt += "\n";
+          }
+        }
+        return asciiArt = asciiArt.replace(/undefined/g, " ");
+      }
+      
+      // Function to display the ASCII art output
+      function displayAsciiArt(asciiArt) {
+        var outputElement = document.getElementById("ascii-art");
+        outputElement.innerHTML = asciiArt;
+        // Calculate the font size based on the window width and number of characters
+        var fontSize = window.innerWidth / 300;
+        outputElement.style.fontSize = fontSize + "px";
+      }
+      
+      // Add an event listener to the window for dynamically changing the font size
+      window.addEventListener("resize", function() {
+        var asciiArt = document.getElementById("ascii-art").innerHTML;
+        displayAsciiArt(asciiArt);
+      });
+    </script>
+  </body>
+</html>
